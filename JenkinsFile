@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+    environment {
+        REAL_PORJECT_NAME = 'businessApp'
+    }
+    parameters {
+        string(defaultValue: "zhaohuaizhi@infohold.com.cn",
+                description: 'List of email recipients',
+                name: 'EMAIL_RECIPIENTS')
+    }
+    stages {
+        stage('buildAndPublish'){
+            when {
+                allOf {
+                    anyOf {
+                    }
+                    changelog '^\\[RELEASE\\].*$'
+                }
+                beforeAgent true
+            }
+    }
+    post{
+        regression{
+            emailext body: "${REAL_PORJECT_NAME}失败",
+                    attachLog: true,
+                    compressLog: true,
+                    mimeType: 'text/plain',
+                    subject: "${REAL_PORJECT_NAME} ${BRANCH_NAME} ${BUILD_NUMBER} 构建-失败",
+                    to: "${params.EMAIL_RECIPIENTS}"
+        }
+    }
+}
