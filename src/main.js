@@ -3,55 +3,59 @@
 import Vue from 'vue'
 import axios from './router/axios';
 import VueAxios from 'vue-axios';
-import App from './App'
-import router from './router'
-import Vant, {Lazyload} from 'vant';
+import App from './App';
+import router from './router';
+import Vant, { Lazyload,Field,Picker,Popup } from 'vant';
 import 'vant/lib/index.css';
-import store from './store/index.js'
-import Vuex from 'vuex'
+import store from './store/index.js';
+import Vuex from 'vuex';
+import ElementUI from 'element-ui';
+import 'element-ui/lib/theme-chalk/index.css';
 
-Vue.use(VueAxios, axios);
-Vue.use(Vuex);
+
+import '../static/UE/ueditor.config.js'
+import '../static/UE/ueditor.all.min.js'
+import '../static/UE/lang/zh-cn/zh-cn.js'
+import '../static/UE/ueditor.parse.min.js'
+
+
+Vue.use(ElementUI)
+Vue.use(VueAxios, axios)
+Vue.use(Vuex)
 Vue.use(Lazyload);
-Vue.use(Vant);
+Vue.use(Vant)
+Vue.use(Field)
+Vue.use(Picker)
+Vue.use(Popup)
 
-Vue.config.productionTip = false;
-Date.prototype.format = function (fmt) {
+
+Vue.config.productionTip = false
+Date.prototype.format = function(fmt) {
   var o = {
-    "M+": this.getMonth() + 1,                 //月份
-    "d+": this.getDate(),                    //日
-    "h+": this.getHours(),                   //小时
-    "m+": this.getMinutes(),                 //分
-    "s+": this.getSeconds(),                 //秒
-    "q+": Math.floor((this.getMonth() + 3) / 3), //季度
-    "S": this.getMilliseconds()             //毫秒
-  };
-  if (/(y+)/.test(fmt)) {
-    fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+     "M+" : this.getMonth()+1,                 //月份
+     "d+" : this.getDate(),                    //日
+     "h+" : this.getHours(),                   //小时
+     "m+" : this.getMinutes(),                 //分
+     "s+" : this.getSeconds(),                 //秒
+     "q+" : Math.floor((this.getMonth()+3)/3), //季度
+     "S"  : this.getMilliseconds()             //毫秒
+ };
+ if(/(y+)/.test(fmt)) {
+         fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));
+ }
+  for(var k in o) {
+     if(new RegExp("("+ k +")").test(fmt)){
+          fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
+      }
   }
-  for (var k in o) {
-    if (new RegExp("(" + k + ")").test(fmt)) {
-      fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
-    }
-  }
-  return fmt;
-};
+ return fmt;
+}
 /* eslint-disable no-new */
-router.beforeEach((to, from, next) => {
-  if(to.path.indexOf('/entrance')== -1){
-    next();
-  }else{
-    if (localStorage.drawer != null) {
-      next()
-    } else {
-      next({path: '/'})
-    }
-  }
-})
+Vue.prototype.$eventHub= Vue.prototype.$eventHub || new Vue()
 new Vue({
   el: '#app',
   router,
   store,
-  components: {App},
+  components: { App },
   template: '<App/>'
-});
+})

@@ -1,246 +1,269 @@
 <template>
   <van-popup class="drawer-box" v-model="showSidbar" position="left">
     <div class="account-msg">
-      <van-image class="member-tx" round fit="cover" :src="userInfo.avatar"/>
-      <div class="member-name">{{userInfo.nick_name}}</div>
-
-      <div class="role-name">{{userInfo.role_name}}</div>
-    </div>
-    <div class="drawer-i" :style="{minHeight:cardAreaH}">
-      <div
-        class="drawer-item van-cell"
-        :class="{selected:item.selected}"
-        v-for="(item,index) in drawerList"
-        :key="index"
-        @click="changeDrawerItem(item.path,index) "
-      >
-        <div class="van-cell__title">
-          <span>{{item.name}}</span>
-        </div>
-        <van-icon :name="item.icon"/>
+      <van-image
+        class="member-tx"
+        round
+        width="80px"
+        fit="cover"
+        height="80px"
+        :src="userInfo.avatar || 'https://img.cct58.com/201612/16/09-35-35-26-14.jpg'"
+      />
+      <div class="member-name">
+        <div>{{userInfo.real_name}}</div>
+        <div>{{currentUser.deptName}}</div>
       </div>
     </div>
-    <!--<van-cell class="drawer-item" :class="{selected:item.selected}" v-for="(item,index) in drawerList" :key="index"-->
-    <!--@click="changeDrawerItem(item.path,index) " :title="item.name" :icon="item.icon"/>-->
 
-    <!--<div data-v-58dcd661="" class="drawer-item van-cell">-->
-    <!--<i data-v-58dcd661="" class="van-icon van-icon-description van-cell__left-icon">-->
-    <!--</i>-->
-    <!--<div data-v-58dcd661="" class="van-cell__title"><span data-v-58dcd661="">出入库明细</span></div>-->
-    <!--</div>-->
-    <!-- 退出登录按钮 -->
-    <!-- <van-cell class="" @click="logout()" title="退出登录" /> -->
-    <div class="drawer-item-logout" @click="logout()">
-      <div>退出登录</div>
-      <img src="../assets/images/loginout.png" alt srcset/>
+    <!-- <van-cell class="drawer-item" :class="{selected:item.selected}" v-for="(item,index) in drawerList" :key="index" @click="changeDrawerItem(item.path,index) " :title="item.name"  >
+      <van-icon name="notes-o" />
+    </van-cell>-->
+    <div v-for="(item,index) in drawerList" :key="index">
+      <div class="title">
+        <div>{{item.name}}</div>
+        <!-- <van-icon name="notes-o" /> -->
+        <img src="../assets/images/meeting_menu.png" alt="">
+      </div>
+      <div
+        class="title_item"
+        v-for="(childItem,idx) in item.uiChildren"
+        :class="{selected:childItem.selected}"
+        :key="idx"
+        @click="changeDrawerItem(childItem.path,childItem.id)"
+      >{{childItem.name}}</div>
     </div>
+    <!-- 退出登录按钮 -->
+    <van-cell class="drawer-item-logout" @click="logout()" title="退出登录" />
   </van-popup>
 </template>
 
 <script>
-  import {mapGetters} from "vuex";
-
-  export default {
-    computed: {
-      showSidbar: {
-        get() {
-          return this.$store.getters.showSidbar;
-        },
-        set(val) {
-          this.$store.commit("SET_SHOWSIDBAR", val);
-        }
+import { mapGetters } from "vuex";
+export default {
+  computed: {
+    showSidbar: {
+      get() {
+        return this.$store.getters.showSidbar;
       },
-
-      ...mapGetters(["loginType", "userInfo", "selectLeft"])
-    },
-    watch:{
-      selectLeft(){
-        this.drawerList.forEach((item, idx) => {
-          item.selected = false;
-          if (this.selectLeft == idx) {
-            localStorage.setItem("drawer", idx);
-            item.selected = true;
-          }
-        });
+      set(val) {
+        this.$store.commit("SET_SHOWSIDBAR", val);
       }
     },
-    data() {
-      return {
-        drawerList: [],
-        cardAreaH: ""
-      };
-    },
-    methods: {
-      onChange() {
-        //   Notify({ type: "primary", message: index });
-      },
-      changeDrawerItem(path, index) {
-        if (this.$route.path != "/entrance/" + path) {
-          this.$store.commit("SET_RELOADPAGE", true);
-          this.$router.push("/entrance/" + path);
-        }
 
-        this.drawerList.forEach((item, idx) => {
-          item.selected = false;
-          if (index == idx) {
-            localStorage.setItem("drawer", idx);
-            item.selected = true;
-          }
-        });
-        this.showSidbar = false;
-      },
-      logout() {
-        this.$router.push("/");
-        localStorage.removeItem("drawer");
+    ...mapGetters(["userInfo"])
+  },
+  watch: {
+    showSidbar() {
+      if (this.showSidbar) {
+        this.currentUser = this.$store.state.base.userDept;
       }
-    },
-    created() {
-      let routerChildren = [...this.$router.options.routes[1].children];
-      for (let i in routerChildren) {
-        if (this.loginType == routerChildren[i].meta.type) {
-          let drawerListItem = {
-            name: routerChildren[i].meta.name,
-            id: i,
-            selected: false,
-            path: routerChildren[i].path,
-            icon: routerChildren[i].icon
-          };
-
-          this.drawerList.push(drawerListItem);
-          // console.log(this.loginType);
-        }
-      }
-      let selectNum = 0;
-      if (localStorage.getItem("drawer")) {
-        selectNum = localStorage.getItem("drawer");
-      } else {
-        localStorage.setItem("drawer", 0);
-      }
-
-      if (this.drawerList[selectNum]) {
-        this.drawerList[selectNum].selected = true;
-      }
-
-      // 显示头像和名字
-      // console.log(this.userInfo);
-    },
-    mounted() {
-      var h = document.documentElement.clientHeight || document.body.clientHeight;
-      // let top = h * 0.14;
-      this.cardAreaH = h - 171 - 140 + "px";
     }
-  };
+  },
+  data() {
+    return {
+      currentUser: "",
+      drawerList: []
+    };
+  },
+  methods: {
+    onChange() {
+      //   Notify({ type: "primary", message: index });
+    },
+    changeDrawerItem(path, id) {
+      console.log(id);
+      this.drawerList[0].uiChildren.forEach(item => {
+        console.log(item.selected);
+        item.selected = false;
+        if (id == item.id) {
+          // localStorage.setItem("drawer", id);
+          item.selected = true;
+        }
+        // item.selected = false;
+        // if (index == idx) {
+        //   localStorage.setItem("drawer", idx);
+        //   item.selected = true;
+        // }
+      });
+      console.log(this.drawerList[0].uiChildren);
+      if (this.$route.path != "/entrance/" + path) {
+        this.$router.push("/entrance/" + path);
+      }
+      this.showSidbar =false;
+    },
+    logout() {
+       this.$store.commit("SET_SHOWSIDBAR", false);
+      this.changeDrawerItem("index", 0)
+      setTimeout(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      }, 200);
+      this.$router.push("/");
+    }
+  },
+  created() {
+    this.drawerList = [];
+    let routerChildren = this.$router.options.routes[1];
+    // console.log(routerChildren)
+    let drawerListItem = {
+      name: routerChildren.name,
+      selected: false,
+      path: routerChildren.path,
+      icon: routerChildren.icon,
+      children: routerChildren.children,
+      uiChildren: []
+    };
+    this.drawerList.push(drawerListItem);
+
+    this.drawerList[0].children.forEach((item, index) => {
+      if (item.meta.type == 1) {
+        console.log(item);
+        let drawerChildItem = {
+          name: item.name,
+          id: index,
+          selected: false,
+          path: item.path,
+          icon: item.icon
+        };
+        this.drawerList[0].uiChildren.push(drawerChildItem);
+      }
+    });
+    console.log(this.drawerList);
+    if (this.drawerList[0].uiChildren) {
+      this.drawerList[0].uiChildren[0].selected = true;
+    }
+  }
+};
 </script>
 
 <style lang="scss" scoped>
-  // .drawer-i{
-  //   min-height: 51%;
-  // }
-  .drawer-box {
-    box-sizing: border-box;
-    height: 100%;
-    width: 60%;
-    // padding: 2rem 0 0;
-    // background: #F8F8FA;
-
-    .account-msg {
-      padding-bottom: 0.875rem;
-      background: #fff;
-      padding-top: 2rem;
-      box-shadow: 0 0 .0625rem 0 rgba(10, 22, 70, 0.06), 1.25rem 0 2.875rem -0.625rem rgba(10, 22, 70, 0.10);
-      margin-bottom: 1.5rem;
-
-      .member-tx {
-        // margin: 0 auto;
-        height: 5rem;
-        width: 5rem;
-        // margin-bottom: 1rem;
-      }
-
-      .member-name {
-        // margin-bottom: 1rem;
-        font-family: PingFangSC-Regular;
-        font-size: 1rem;
-        color: #222b45;
-        letter-spacing: 0;
-        text-align: center;
-      }
-
-      .role-name {
-        opacity: 0.5;
-        font-family: PingFangSC-Regular;
-        font-size: 0.875rem;
-        color: #222b45;
-        letter-spacing: 0;
-        text-align: center;
-        line-height: 0.875rem;
-        margin-top: 0.2rem;
-      }
+.drawer-box {
+  box-sizing: border-box;
+  height: 100%;
+  width: 60%;
+  // padding: 2rem 2.4rem 0;
+  overflow: hidden;
+  .account-msg {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1.875rem;
+    box-shadow: 0 0 1px 0 rgba(10, 22, 70, 0.06),
+      20px 0 46px -10px rgba(10, 22, 70, 0.1);
+    padding-top: 3.2rem;
+    .member-tx {
+      // margin: 0 auto;
+      margin-bottom: 1rem;
     }
-
-    /deep/ .van-cell {
-      padding: 0.625rem 0;
-    }
-
-    .drawer-item {
-      height: 4.25rem;
-      font-family: PingFangSC-Light;
-      font-size: 1rem;
-      color: #222b45;
-      letter-spacing: 0;
-      border-bottom: 1px solid #ebebeb;
-      vertical-align: middle;
-      flex-direction: row;
-      align-items: center;
+    .member-name {
+      margin-bottom: 1rem;
       text-align: left;
-      // background: #F8F8FA;
-      width: 78.3%;
-      margin: 0 auto;
-
-      i {
-        font-size: 1.5rem;
-        margin-left: 2rem;
-      }
-    }
-
-    .drawer-item-logout {
-      // background: url("../assets/images/loginout.png") 12rem center no-repeat;
-      // background-size: 2rem;
-      box-shadow: 0 0 .0625rem 0 rgba(10, 22, 70, 0.06), 1.25rem 0 2.875rem -0.625rem rgba(10, 22, 70, 0.10);
-      /* bottom: 0; */
-      width: 100%;
-      height: 60px;
-      // background-color: #fff;
-      box-sizing: border-box;
-      display: flex;
-      align-items: center;
-      padding: 0 24px;
-      margin-top: 3rem;
-      justify-content: space-between;
-      display: flex;
-      flex-direction: row;
-      // position: fixed;
-      // bottom: 0.5rem;
-      div {
-        font-family: PingFangSC-Light;
+      div:first-child {
+        width: 100%;
+        font-family: PingFangSC-Regular;
         font-size: 16px;
         color: #222b45;
         letter-spacing: 0;
+        text-align: center;
+        line-height: 16px;
+        // text-align: left;
       }
-
-      img {
-        height: 2rem;
-        width: 2rem;
+      div:last-child {
+        width: 100%;
+        // text-align: left;
+        margin-top: 0.5rem;
+        opacity: 0.5;
+        font-family: PingFangSC-Regular;
+        font-size: 14px;
+        color: #222b45;
+        letter-spacing: 0;
+        text-align: center;
+        line-height: 14px;
       }
-    }
-
-    .drawer-item:after {
-      border-bottom: none;
-    }
-
-    .selected {
-      // background: #D8D8D8;
-      color: #fe5845;
     }
   }
+
+  .drawer-item {
+    height: 3.5rem;
+    border-bottom: none;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+    font-size: 17px;
+    padding: 3px 5px;
+    line-height: 33px;
+    font-family: PingFangSC-Light;
+    font-size: 1.6rem;
+    color: #222b45;
+    letter-spacing: 0;
+    i {
+      font-size: 2rem;
+      margin-left: 2rem;
+    }
+  }
+  .drawer-item-logout {
+    background: url("../assets/images/loginout.png") right center no-repeat;
+    background-size: 2rem;
+    position: fixed;
+    /* left: 1.5rem; */
+    bottom: 0;
+    width: 89%;
+    height: 60px;
+    background-color: #fff;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    font-family: PingFangSC-Light;
+    font-size: 16px;
+    color: #222b45;
+    letter-spacing: 0;
+    /* line-height: 60px; */
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+  }
+  .drawer-item:after {
+    border-bottom: none;
+  }
+  .selected {
+    // background-image: linear-gradient(90deg, #ff7901 3%, #fe5845 100%);
+    // border-radius: 50px;
+    color: #ff7901;
+    font-weight: 700;
+  }
+}
+/deep/ .van-cell__title {
+  text-align: left;
+}
+.title {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+  padding: 0 24px;
+  div {
+    text-align: left;
+    font-family: PingFangSC-Semibold;
+    font-size: 16px;
+    color: #222b45;
+    letter-spacing: 0;
+    line-height: 16px;
+  }
+  img{
+    height: 2rem;
+    width: 2rem;
+  }
+}
+.title_item {
+  text-align: left;
+  // padding: 0 24px;
+  width: 80%;
+  margin: 0 auto;
+  height: 48px;
+  font-family: PingFangSC-Light;
+  font-size: 16px;
+  color: #222b45;
+  letter-spacing: 0;
+  line-height: 48px;
+  border-bottom: 1px solid rgba(235, 235, 235, 0.5);
+}
 </style>

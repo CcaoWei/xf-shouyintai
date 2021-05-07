@@ -11,18 +11,7 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
-      "/api": {
-        // target: "http://192.168.10.131:58296",//史
-        // target: "http://192.168.10.47:58296",//秦
-        target: "http://47.105.182.122:58296",//外网
-        // target: "http://192.168.10.133:58296",//内网
-        // target:"http://192.168.10.16:8109",//梁
-        ws: true,
-        pathRewrite: {
-          "^/api": "/"
-        }
-      },
-      "/login/": {//外网
+      "/login/": {
         target: "https://all.cafewallet.cn",
         changeOrigin: true,
         secure: false,
@@ -33,14 +22,16 @@ module.exports = {
           "^/login/": "/"
         }
       },
-      // "/login/api/": {//内网
-      //   target: "http://192.168.10.133:8100",
-      //   changeOrigin: true,
-      //   ws: true,
-      //   pathRewrite: {
-      //     "^/login/api/": "/"
-      //   }
-      // },
+      "/api/meeting": {
+        // target: "http://192.168.10.131:8109",//史
+        // target: "http://192.168.10.29:8109",//秦
+        target: "http://47.105.169.45:58295",//内网
+        // target: "http://47.105.182.122:58295",//内网
+        // target: process.env.NODE_ENV === "production" ? "http://47.105.182.122:8100" : (process.env.NODE_ENV === "test" ? "http://192.168.10.32:8100" : "http://47.105.182.122:8100"),
+        // target:"http://192.168.10.16:8109",//梁
+        ws: true,
+        changeOrigin: true,
+      },
     },
 
     // Various Dev Server settings
@@ -102,6 +93,7 @@ module.exports = {
     // View the bundle analyzer report after build finishes:
     // `npm run build --report`
     // Set to `true` or `false` to always turn it on or off
-    bundleAnalyzerReport: process.env.npm_config_report
+    bundleAnalyzerReport: process.env.npm_config_report,
+
   }
 }

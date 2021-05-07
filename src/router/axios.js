@@ -9,15 +9,13 @@ import axios from 'axios'
 import store from '@/store/';
 import router from 'vue-router';
 import { serialize } from '@/util/util'
-// import { getToken } from '@/util/auth'
+import { getToken } from '@/util/auth'
 import { Notify } from 'vant';
-// import website from '@/config/website';
 import NProgress from 'nprogress' // progress bar
 import 'nprogress/nprogress.css' // progress bar style
 // import { Base64 } from 'js-base64';
-import { getStore } from '@/util/store';
 
-axios.defaults.timeout = 100 * 1000;
+axios.defaults.timeout = 10000;
 //返回其他状态码
 axios.defaults.validateStatus = function (status) {
   return status >= 200 && status <= 500; // 默认的
@@ -31,23 +29,17 @@ NProgress.configure({
 
 //HTTPrequest拦截
 axios.interceptors.request.use(config => {
-  //printout all the request meta data
-  // console.log("RequestData::method = " + config.method + "\nurl= " + config.url);
+
   NProgress.start() // start progress bar
   const meta = (config.meta || {});
-  // const isToken = meta.isToken === false;
-  if (getStore({ name: 'userInfo' }) && getStore({ name: 'userInfo' }).refresh_token) {
-    config.headers['Blade-Auth'] = "bearer " + getStore({ name: 'userInfo' }).refresh_token;
-  }
+  const isToken = meta.isToken === false;
   // config.headers['Authorization'] = `Basic ${Base64.encode(`${website.clientId}:${website.clientSecret}`)}`;
-  // if (getToken() && !isToken) {
-  //   config.headers['Blade-Auth'] = 'bearer ' + getToken() // 让每个请求携带token--['Authorization']为自定义key 请根据实际情况自行修改
-  // }
+  if (getToken() && !isToken) {
+    config.headers['Blade-Auth'] = 'bearer ' + getToken() // 让每个请求携带token--['Authorization']为自定义key 请根据实际情况自行修改
+  }
+  // console.log(getToken())
   // console.log(config);
   //headers中配置serialize为true开启序列化
-  if (config.url == '/api/pay/v1/wx-pay-qr-code' || config.url == '/api/pay/v1/ali-pay-qr-code') {
-    config.responseType = 'arraybuffer';
-  }
   if (config.method === 'post' && meta.isSerialize === true) {
     config.data = serialize(config.data);
   }
@@ -57,18 +49,19 @@ axios.interceptors.request.use(config => {
 });
 
 
+
 //HTTPresponse拦截
 axios.interceptors.response.use(res => {
   NProgress.done();
   const status = res.data.code || 200;
   const statusWhiteList = [];//http的status默认放行不才用统一处理的,
   const message = res.data.msg || '未知错误';
-  // const requestPath = res.config.url;
-  // console.log("errorStatus = " + status + " &eMsg = " + message + " &requestURL = " + requestPath);
-  // if (requestPath == "/api/blade-desk/process/leave/start-process" && parseInt(status) == 404) {
-  //   alert("后台服务(DestApplication)未启动，请联系我们的系统维护人员");
-  //   return Promise.reject(new Error(message))
-  // }
+  const requestPath = res.config.url;
+  console.log("errorStatus = " + status + " &eMsg = " + message + " &requestURL = " + requestPath);
+  if (requestPath == "/api/blade-desk/process/leave/start-process" && parseInt(status) == 404) {
+    alert("后台服务(DestApplication)未启动，请联系我们的系统维护人员");
+    return Promise.reject(new Error(message))
+  }
   //如果在白名单里则自行catch逻辑处理
   if (statusWhiteList.includes(status)) return Promise.reject(res);
   //如果是401则跳转到登录页面
@@ -81,7 +74,6 @@ axios.interceptors.response.use(res => {
   return res;
 }, error => {
   NProgress.done();
-  Notify({ type: 'danger', message: "网络错误" });
   return Promise.reject(new Error(error));
 });
 
