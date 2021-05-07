@@ -26,5 +26,5 @@ npm run build --report
 <br />
 
 ![5581620374912_ pic](https://user-images.githubusercontent.com/30033591/117419136-d0c7d880-af4e-11eb-92f9-9e181dc5ef0e.jpg)
-<br /> ![5591620374918_ pic](https://user-images.githubusercontent.com/30033591/117419295-fc4ac300-af4e-11eb-96f4-70026d51abb4.jpg)
+![5591620374918_ pic](https://user-images.githubusercontent.com/30033591/117419295-fc4ac300-af4e-11eb-96f4-70026d51abb4.jpg)
 
